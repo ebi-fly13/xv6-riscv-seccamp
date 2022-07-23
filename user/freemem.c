@@ -8,6 +8,6 @@ main(int argc, char *argv[])
     if (size < 0) {
         exit(1);
     }
-    printf("%d\n", size);
+    printf("%dB\n", size);
     exit(0);
 }
