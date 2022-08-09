@@ -13,6 +13,8 @@ void copytest() {
         printf("sbrk(%d) failed\n", sz);
     }
 
+    printf("fork start\n");
+
     int pid = fork();
 
     if(pid < 0) {
