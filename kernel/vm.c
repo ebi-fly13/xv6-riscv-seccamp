@@ -313,7 +313,8 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     // clear PTE_W and set PTE_C
     if(*pte & PTE_W) 
     {
-      *pte ^= PTE_W | PTE_C;
+      *pte &= ~PTE_W;
+      *pte |= PTE_C;
     }
 
     pa = PTE2PA(*pte);
@@ -351,10 +352,15 @@ int
 copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 {
   uint64 n, va0, pa0;
+  pte_t *pte;
 
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
-    pa0 = walkaddr(pagetable, va0);
+    pte = walk(pagetable, va0, 0);
+    pa0 = PTE2PA(*pte);
+    if(*pte & (PTE_C)) {
+      copy_on_write(va0);
+    }
     if(pa0 == 0)
       return -1;
     n = PGSIZE - (dstva - va0);

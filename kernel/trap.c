@@ -81,7 +81,7 @@ usertrap(void)
       panic("page fault: page not present");
     if(*pte & PTE_C) {
       pa = PTE2PA(*pte);
-      flags = (PTE_FLAGS(*pte) ^ PTE_C) | PTE_W;
+      flags = (PTE_FLAGS(*pte) & (~PTE_C)) | PTE_W;
       if((mem = kalloc()) == 0) {
         panic("page fault: kalloc");
       }

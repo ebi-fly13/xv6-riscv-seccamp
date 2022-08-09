@@ -654,3 +654,31 @@ procdump(void)
     printf("\n");
   }
 }
+
+void copy_on_write(uint64 va) 
+{
+  uint64 pa;
+  uint flags;
+  pte_t *pte;
+  char *mem;
+
+  struct proc *p = myproc();
+
+  if((pte = walk(p->pagetable, va, 0)) == 0)
+    panic("page fault: pte should exist");
+  if((*pte & PTE_V) == 0)
+    panic("cow: page not present");
+  if((*pte & PTE_C) == 0)
+    panic("cow: PTE_C clear");
+  pa = PTE2PA(*pte);
+  flags = (PTE_FLAGS(*pte) & (~PTE_C)) | PTE_W;
+  if((mem = kalloc()) == 0) {
+    panic("cow: kalloc");
+  }
+  memmove(mem, (char *)pa, PGSIZE);
+  uvmunmap(p->pagetable, PGROUNDDOWN(va), 1, 1);
+  if(mappages(p->pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, flags) != 0) { 
+    kfree(mem);
+    panic("cow: mappages");
+  }
+}
