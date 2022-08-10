@@ -80,8 +80,12 @@ kvminithart()
 pte_t *
 walk(pagetable_t pagetable, uint64 va, int alloc)
 {
-  if(va >= MAXVA)
+  if(va >= MAXVA) {
+    printf("va = %p\n", va);
+    printf("L2:%d L1:%d L0:%d\n", PX(va, 2), PX(va,1), PX(va,0));
+    vmprint(pagetable, 0);
     panic("walk");
+  }
 
   for(int level = 2; level > 0; level--) {
     pte_t *pte = &pagetable[PX(level, va)];
@@ -356,11 +360,16 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
-    pte = walk(pagetable, va0, 0);
+    pa0 = walkaddr(pagetable, va0);
+    if(pa0 == 0)
+      return -1;
+    if((pte = walk(pagetable, va0, 0)) == 0) {
+      return -1;
+    }
     if(*pte & (PTE_C)) {
       copy_on_write(pagetable, va0);
+      pa0 = walkaddr(pagetable, va0);
     }
-    pa0 = walkaddr(pagetable, va0);
     if(pa0 == 0)
       return -1;
     n = PGSIZE - (dstva - va0);
