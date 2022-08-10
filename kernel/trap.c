@@ -83,7 +83,8 @@ usertrap(void)
       pa = PTE2PA(*pte);
       flags = (PTE_FLAGS(*pte) & (~PTE_C)) | PTE_W;
       if((mem = kalloc()) == 0) {
-        panic("page fault: kalloc");
+        printf("page fault: kalloc");
+        goto err;
       }
       memmove(mem, (char *)pa, PGSIZE);
       uvmunmap(p->pagetable, PGROUNDDOWN(va), 1, 1);
