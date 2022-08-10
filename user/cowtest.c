@@ -137,7 +137,7 @@ filetest()
       int nbytes = read(fds[0], buf, sizeof(i));
       if(nbytes != sizeof(i)){
         PID_PRINTF("read: %d\n", nbytes);
-        PID_PRINTF("error[%d]: read failed\n", getpid());
+        PID_PRINTF("error: read failed\n");
         exit(1);
       }
       sleep(1);
@@ -160,9 +160,9 @@ filetest()
 
   int xstatus = 0;
   for(int i = 0; i < 2; i++) {
-    wait(&xstatus);
+    int pid = wait(&xstatus);
     if(xstatus != 0) {
-      exit(1);
+      PID_PRINTF("child pid = %d, xstatus = %d", pid, xstatus);
     }
   }
 
@@ -175,7 +175,6 @@ filetest()
 }
 
 int main() {
-    /*
     copytest();
     copytest();
     copytest();
@@ -183,7 +182,6 @@ int main() {
     threetest();
     threetest();
     threetest();
-    */
 
     filetest();
     PID_PRINTF("all test successful.\n");
