@@ -360,15 +360,17 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
-    pa0 = walkaddr(pagetable, va0);
-    if(pa0 == 0)
+    if(va0 >= MAXVA)
       return -1;
-    if((pte = walk(pagetable, va0, 0)) == 0) {
+    if((pte = walk(pagetable, va0, 0)) == 0 || (*pte & PTE_U) == 0) {
       return -1;
     }
     if(*pte & (PTE_C)) {
       copy_on_write(pagetable, va0);
       pa0 = walkaddr(pagetable, va0);
+    }
+    else {
+      pa0 = PTE2PA(*pte);
     }
     if(pa0 == 0)
       return -1;
