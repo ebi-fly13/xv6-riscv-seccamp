@@ -663,7 +663,7 @@ void copy_on_write(pagetable_t pagetable, uint64 va)
   char *mem;
 
   if((pte = walk(pagetable, va, 0)) == 0)
-    panic("page fault: pte should exist");
+    panic("cow: pte should exist");
   if((*pte & PTE_V) == 0)
     panic("cow: page not present");
   if((*pte & PTE_C) == 0)
