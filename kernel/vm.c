@@ -357,9 +357,9 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
     pte = walk(pagetable, va0, 0);
-    pa0 = PTE2PA(*pte);
+    pa0 = walkaddr(pagetable, va0);
     if(*pte & (PTE_C)) {
-      copy_on_write(va0);
+      copy_on_write(pagetable, va0);
     }
     if(pa0 == 0)
       return -1;
