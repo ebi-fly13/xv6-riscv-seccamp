@@ -122,7 +122,7 @@ filetest()
   
   buf[0] = 99;
 
-  for(int i = 0; i < 3; i++){
+  for(int i = 0; i < 2; i++){
     if(pipe(fds) != 0){
       PID_PRINTF("pipe() failed\n");
       exit(-1);
@@ -134,7 +134,9 @@ filetest()
     }
     if(pid == 0){
       sleep(1);
-      if(read(fds[0], buf, sizeof(i)) != sizeof(i)){
+      int nbytes = read(fds[0], buf, sizeof(i));
+      if(nbytes != sizeof(i)){
+        PID_PRINTF("read: %d\n", nbytes);
         PID_PRINTF("error[%d]: read failed\n", getpid());
         exit(1);
       }
@@ -157,7 +159,7 @@ filetest()
   }
 
   int xstatus = 0;
-  for(int i = 0; i < 3; i++) {
+  for(int i = 0; i < 2; i++) {
     wait(&xstatus);
     if(xstatus != 0) {
       exit(1);
