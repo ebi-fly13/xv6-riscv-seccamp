@@ -160,6 +160,7 @@ endif
 QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS) -nographic
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+QEMUOPTS += -monitor telnet:0.0.0.0:8080,server,nowait
 
 qemu: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS)
