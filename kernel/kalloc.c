@@ -17,7 +17,7 @@ extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
 
 struct {
-  struct spinlock lock;
+  struct spinlock lock[PGNUM];
   int counters[PGNUM];
 } phys_pages;
 
@@ -34,8 +34,8 @@ void
 kinit()
 {
   initlock(&kmem.lock, "kmem");
-  initlock(&phys_pages.lock, "phys_pages");
   for(int i = 0; i < PGNUM; i++) {
+    initlock(&phys_pages.lock[i], "phys_page");
     phys_pages.counters[i] = 1;
   }
   freerange(end, (void*)PHYSTOP);
@@ -44,9 +44,10 @@ kinit()
 void
 reference_counter_increment(void *pa)
 {
-  acquire(&phys_pages.lock);
-  phys_pages.counters[((uint64)pa - KERNBASE) / PGSIZE]++;
-  release(&phys_pages.lock);
+  int index = ((uint64)pa - KERNBASE) / PGSIZE;
+  acquire(&phys_pages.lock[index]);
+  phys_pages.counters[index]++;
+  release(&phys_pages.lock[index]);
 }
 
 void
@@ -72,13 +73,13 @@ kfree(void *pa)
 
   int index = ((uint64)pa - KERNBASE) / PGSIZE;
 
-  acquire(&phys_pages.lock);
+  acquire(&phys_pages.lock[index]);
   phys_pages.counters[index]--;
   if(phys_pages.counters[index] > 0) {
-    release(&phys_pages.lock);
+    release(&phys_pages.lock[index]);
     return;
   }
-  release(&phys_pages.lock);
+  release(&phys_pages.lock[index]);
 
   // Fill with junk to catch dangling refs.
   memset(pa, 1, PGSIZE);
