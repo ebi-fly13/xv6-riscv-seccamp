@@ -124,6 +124,25 @@ walkaddr(pagetable_t pagetable, uint64 va)
   return pa;
 }
 
+int
+pte_remap(pte_t *pte, uint64 pa, int flags, int do_free)
+{
+  if(pte == 0) 
+    return -1;
+  if((pa % PGSIZE) != 0) 
+    panic("pte_remap: not aligned");
+  if((*pte & PTE_V) == 0)
+    panic("pte_remap: not mapped");
+  if(PTE_FLAGS(*pte) == PTE_V)
+    panic("pte_remap: not a leaf");
+  if(do_free){
+    uint64 oldpa = PTE2PA(*pte);
+    kfree((void*)oldpa);
+  }
+  *pte = PA2PTE(pa) | flags;
+  return 0;
+}
+
 // add a mapping to the kernel page table.
 // only used when booting.
 // does not flush TLB or enable paging.
@@ -367,11 +386,8 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
     }
     if(*pte & (PTE_C)) {
       copy_on_write(pagetable, va0);
-      pa0 = walkaddr(pagetable, va0);
     }
-    else {
-      pa0 = PTE2PA(*pte);
-    }
+    pa0 = PTE2PA(*pte);
     if(pa0 == 0)
       return -1;
     n = PGSIZE - (dstva - va0);

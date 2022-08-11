@@ -87,8 +87,7 @@ usertrap(void)
         goto err;
       }
       memmove(mem, (char *)pa, PGSIZE);
-      uvmunmap(p->pagetable, PGROUNDDOWN(va), 1, 1);
-      if(mappages(p->pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, flags) != 0) { 
+      if(pte_remap(pte, (uint64)mem, flags, 1) != 0) { 
         kfree(mem);
         panic("page fault: mappages");
       }

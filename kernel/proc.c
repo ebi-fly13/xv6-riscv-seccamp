@@ -674,9 +674,8 @@ void copy_on_write(pagetable_t pagetable, uint64 va)
     panic("cow: kalloc");
   }
   memmove(mem, (char *)pa, PGSIZE);
-  uvmunmap(pagetable, PGROUNDDOWN(va), 1, 1);
-  if(mappages(pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, flags) != 0) { 
+  if(pte_remap(pte, (uint64)mem, flags, 1) != 0) {
     kfree(mem);
     panic("cow: mappages");
-  }
+  } 
 }
